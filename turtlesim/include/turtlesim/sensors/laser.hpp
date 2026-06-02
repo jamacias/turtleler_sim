@@ -41,22 +41,25 @@ public:
         scan.angle_increment          = (scan.angle_max - scan.angle_min) / n_beams;
         for (std::size_t i = 0; i < n_beams; ++i)
         {
-            // Determine origin and direction (ray)
+            // Make a ray going from the turtle at the angle of the beam in world
             const auto beam_orientation = orientation + scan.angle_min + i * scan.angle_increment;
             auto ray = QLineF(position, QPointF(position.x() + scan.range_max, 0.0f));
             ray.setAngle(beam_orientation * 180.0 / M_PI);
-            // Find the intersection with the lines defining the boundaries
+
+            // The range is the closest point that intersects with the boundary lines
             float range = std::numeric_limits<float>::infinity();
             for (const auto& boundary : boundaries)
             {
                 QPointF intersection;
                 if (const auto intersectionType = ray.intersects(boundary, &intersection);
-                    intersectionType == QLineF::IntersectionType::BoundedIntersection)
+                    intersectionType != QLineF::IntersectionType::BoundedIntersection)
                 {
-                    if (const auto distance = QVector2D(position).distanceToPoint(QVector2D(intersection)); range > distance)
-                    {
-                        range = distance;
-                    }
+                    continue;
+                }
+
+                if (const auto distance = QVector2D(position).distanceToPoint(QVector2D(intersection)); range > distance)
+                {
+                    range = distance;
                 }
             }
             scan.ranges.emplace_back(range);
