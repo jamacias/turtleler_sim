@@ -43,12 +43,8 @@ public:
         {
             // Determine origin and direction (ray)
             const auto beam_orientation = orientation + scan.angle_min + i * scan.angle_increment;
-            const auto origin           = QVector2D(position);
-            const auto direction = QVector2D(std::cos(beam_orientation), -std::sin(beam_orientation)).normalized();
-            const auto ray = QLineF(origin.toPointF(), (1000.0 * direction).toPointF());
-            // auto ray = QLineF(origin.toPointF(), QVector2D(100.0, 100.0).toPointF());
-            // ray.setAngle(beam_orientation * 180.0 / M_PI);
-            // RCLCPP_WARN(nh_->get_logger(), "Ray p1 [x, y]: [%.3f, %.3f]; ray p2: [%.3f, %.3f]", ray.p1().x(), ray.p1().y(), ray.p2().x(), ray.p2().y());
+            auto ray = QLineF(position, QPointF(position.x() + scan.range_max, 0.0f));
+            ray.setAngle(beam_orientation * 180.0 / M_PI);
             // Find the intersection with the lines defining the boundaries
             float range = std::numeric_limits<float>::infinity();
             for (const auto& boundary : boundaries)
@@ -57,7 +53,7 @@ public:
                 if (const auto intersectionType = ray.intersects(boundary, &intersection);
                     intersectionType == QLineF::IntersectionType::BoundedIntersection)
                 {
-                    if (const auto distance = origin.distanceToPoint(QVector2D(intersection)); range > distance)
+                    if (const auto distance = QVector2D(position).distanceToPoint(QVector2D(intersection)); range > distance)
                     {
                         range = distance;
                     }
