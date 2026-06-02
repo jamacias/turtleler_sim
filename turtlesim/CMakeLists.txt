@@ -29,6 +29,7 @@ add_executable(turtlesim_node
   src/turtlesim.cpp
   src/turtle.cpp
   src/turtle_frame.cpp
+  src/sensors/laser.cpp
   ${turtlesim_node_MOCS}
 )
 target_link_libraries(turtlesim_node PRIVATE
