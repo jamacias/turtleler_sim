@@ -30,6 +30,7 @@
 #define TURTLESIM__TURTLE_HPP_
 
 // This prevents a MOC error with versions of boost >= 1.48
+#include "turtlesim/sensors/laser.hpp"
 #ifndef Q_MOC_RUN  // See: https://bugreports.qt-project.org/browse/QTBUG-22829
 # include <rclcpp/rclcpp.hpp>
 # include <rclcpp_action/rclcpp_action.hpp>
@@ -102,10 +103,11 @@ private:
   bool pen_on_;
   QPen pen_;
 
+  Laser laser_;
+
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr velocity_sub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Pose>::SharedPtr pose_pub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Color>::SharedPtr color_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_pub_;
   rclcpp::Service<turtlesim_msgs::srv::SetPen>::SharedPtr set_pen_srv_;
   rclcpp::Service<turtlesim_msgs::srv::TeleportRelative>::SharedPtr teleport_relative_srv_;
   rclcpp::Service<turtlesim_msgs::srv::TeleportAbsolute>::SharedPtr teleport_absolute_srv_;
