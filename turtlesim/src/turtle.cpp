@@ -33,11 +33,13 @@
 
 #include <cmath>
 #include <functional>
+#include <qvector2d.h>
 #include <string>
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include "sensor_msgs/msg/laser_scan.hpp"
 #include "turtlesim_msgs/action/rotate_absolute.hpp"
 #include "turtlesim_msgs/msg/pose.hpp"
 #include "turtlesim_msgs/msg/color.hpp"
@@ -80,6 +82,7 @@ Turtle::Turtle(
       std::placeholders::_1));
   pose_pub_ = nh_->create_publisher<turtlesim_msgs::msg::Pose>(real_name + "/pose", qos);
   color_pub_ = nh_->create_publisher<turtlesim_msgs::msg::Color>(real_name + "/color_sensor", qos);
+  laser_pub_ = nh_->create_publisher<sensor_msgs::msg::LaserScan>(real_name + "/laser", rclcpp::QoS(1));
   set_pen_srv_ =
     nh_->create_service<turtlesim_msgs::srv::SetPen>(
     real_name + "/set_pen",
@@ -318,6 +321,52 @@ bool Turtle::update(
     color->b = qBlue(pixel);
     color_pub_->publish(std::move(color));
   }
+
+  sensor_msgs::msg::LaserScan scan;
+  scan.header.stamp = nh_->now();
+  scan.header.frame_id = "turtle1";
+  scan.range_min = 0.1f;
+  scan.range_max = 10.0f;
+  scan.scan_time = 0.01f;
+  scan.time_increment = 0.001f;
+  scan.angle_min = -2*M_PI/3;
+  scan.angle_max = 2*M_PI/3;
+  constexpr std::size_t n_beams = 100;
+  scan.angle_increment = (scan.angle_max - scan.angle_min) / n_beams;
+  const std::vector<QLineF> boundaries({
+      QLineF(0, 0, canvas_width, 0),
+      QLineF(0, 0, 0, canvas_height),
+      QLineF(canvas_width, 0, canvas_width, canvas_height),
+      QLineF(0, canvas_height, canvas_width, canvas_height),
+  });
+  for (std::size_t i = 0; i < n_beams; ++i)
+  {
+    // Determine origin and direction (ray)
+    const auto beam_orientation = orient_ + scan.angle_min + i * scan.angle_increment;
+    const auto origin = QVector2D(pos_);
+    // const auto direction = QVector2D(std::cos(beam_orientation), std::sin(beam_orientation)).normalized();
+    // const auto ray = QLineF(origin.toPointF(), (1000.0 * direction).toPointF());
+    auto ray = QLineF(origin.toPointF(), QVector2D(100.0, 100.0).toPointF());
+    ray.setAngle(beam_orientation * 180.0 / M_PI);
+    // RCLCPP_WARN(nh_->get_logger(), "Ray p1 [x, y]: [%.3f, %.3f]; ray p2: [%.3f, %.3f]", ray.p1().x(), ray.p1().y(), ray.p2().x(), ray.p2().y());
+    // Find the intersection with the lines defining the boundaries
+    float range = std::numeric_limits<float>::infinity();
+    for (const auto& boundary : boundaries)
+    {
+      QPointF intersection;
+      if (const auto intersectionType = ray.intersects(boundary, &intersection);
+          intersectionType == QLineF::IntersectionType::BoundedIntersection)
+      {
+        if (const auto distance = origin.distanceToPoint(QVector2D(intersection)); range > distance)
+        {
+          range = distance;
+        }
+      }
+    }
+    scan.ranges.emplace_back(range);
+    // scan.ranges.emplace_back(2.0f);
+  }
+  laser_pub_->publish(scan);
 
   RCLCPP_DEBUG(
     nh_->get_logger(), "[%s]: pos_x: %f pos_y: %f theta: %f",

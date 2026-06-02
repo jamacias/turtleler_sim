@@ -18,6 +18,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(turtlesim_msgs REQUIRED)
 
 include_directories(include ${Qt5Widgets_INCLUDE_DIRS})
@@ -39,6 +40,7 @@ target_link_libraries(turtlesim_node PRIVATE
   rclcpp::rclcpp
   rclcpp_action::rclcpp_action
   ${std_srvs_TARGETS}
+  ${sensor_msgs_TARGETS}
 )
 
 add_executable(turtle_teleop_key tutorials/teleop_turtle_key.cpp)

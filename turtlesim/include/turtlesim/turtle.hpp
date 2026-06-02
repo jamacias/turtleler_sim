@@ -41,6 +41,7 @@
 # include <turtlesim_msgs/srv/set_pen.hpp>
 # include <turtlesim_msgs/srv/teleport_absolute.hpp>
 # include <turtlesim_msgs/srv/teleport_relative.hpp>
+# include <sensor_msgs/msg/laser_scan.hpp>
 #endif
 
 #include <QImage>
@@ -104,6 +105,7 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr velocity_sub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Pose>::SharedPtr pose_pub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Color>::SharedPtr color_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_pub_;
   rclcpp::Service<turtlesim_msgs::srv::SetPen>::SharedPtr set_pen_srv_;
   rclcpp::Service<turtlesim_msgs::srv::TeleportRelative>::SharedPtr teleport_relative_srv_;
   rclcpp::Service<turtlesim_msgs::srv::TeleportAbsolute>::SharedPtr teleport_absolute_srv_;
