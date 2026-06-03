@@ -2,13 +2,14 @@
 #define TURTLESIM__LASER_HPP_
 
 // This prevents a MOC error with versions of boost >= 1.48
-#include <qpoint.h>
 #ifndef Q_MOC_RUN // See: https://bugreports.qt-project.org/browse/QTBUG-22829
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #endif
 
 #include <qline.h>
+#include <qpoint.h>
+#include <random>
 
 namespace turtlesim
 {
@@ -16,14 +17,18 @@ namespace turtlesim
 class Laser
 {
 public:
+    using MessageType = sensor_msgs::msg::LaserScan;
     explicit Laser(rclcpp::Node::SharedPtr& nodeHandle, const std::string& frame_id);
 
-    void measure(const QPointF& position, const float orientation, const std::vector<QLineF>& boundaries) const;
+    void measure(const QPointF& position, const float orientation, const std::vector<QLineF>& boundaries);
 
 private:
-    rclcpp::Node::SharedPtr nodeHandle_;
-    std::string frame_id_;
-    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr pub_;
+    rclcpp::Node::SharedPtr                   nodeHandle_;
+    std::string                               frame_id_;
+    rclcpp::Publisher<MessageType>::SharedPtr pub_;
+    std::random_device                        random_device_{};
+    std::mt19937                              randomGenerator_{random_device_()};
+    std::normal_distribution<float>           noise_{0.01, 0.02};
 };
 
 } // namespace turtlesim

@@ -11,12 +11,12 @@ Laser::Laser(rclcpp::Node::SharedPtr& nodeHandle, const std::string& frame_id)
 : nodeHandle_(nodeHandle)
 , frame_id_(frame_id)
 {
-    pub_ = nodeHandle_->create_publisher<sensor_msgs::msg::LaserScan>(frame_id_ + "/laser", rclcpp::QoS(1));
+    pub_ = nodeHandle_->create_publisher<MessageType>(frame_id_ + "/laser", rclcpp::QoS(1));
 }
 
-void Laser::measure(const QPointF& position, const float orientation, const std::vector<QLineF>& boundaries) const
+void Laser::measure(const QPointF& position, const float orientation, const std::vector<QLineF>& boundaries)
 {
-    sensor_msgs::msg::LaserScan scan;
+    MessageType scan;
     scan.header.stamp             = rclcpp::Clock().now();
     scan.header.frame_id          = frame_id_;
     scan.range_min                = 0.1f;
@@ -45,7 +45,8 @@ void Laser::measure(const QPointF& position, const float orientation, const std:
                 continue;
             }
 
-            if (const auto distance = QVector2D(position).distanceToPoint(QVector2D(intersection)); range > distance)
+            if (const auto distance = QVector2D(position).distanceToPoint(QVector2D(intersection)) + noise_(randomGenerator_);
+                range > distance)
             {
                 range = distance;
             }
