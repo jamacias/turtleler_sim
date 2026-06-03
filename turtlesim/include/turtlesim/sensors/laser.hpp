@@ -20,7 +20,7 @@ public:
     using MessageType = sensor_msgs::msg::LaserScan;
     explicit Laser(rclcpp::Node::SharedPtr& nodeHandle, const std::string& frame_id);
 
-    void measure(const QPointF& position, const float orientation, const std::vector<QLineF>& boundaries);
+    void measure(const QPointF& position, const float orientation, const std::map<std::string, std::vector<QLineF>>& boundaries);
 
 private:
     rclcpp::Node::SharedPtr                   nodeHandle_;

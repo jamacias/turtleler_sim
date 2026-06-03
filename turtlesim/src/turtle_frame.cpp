@@ -34,6 +34,7 @@
 #include <ctime>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include "rcl_interfaces/msg/integer_range.hpp"
 #include "rcl_interfaces/msg/parameter_descriptor.hpp"
@@ -302,13 +303,25 @@ void TurtleFrame::updateTurtles()
     return;
   }
 
+  std::map<std::string, std::vector<QLineF>> boundaries;
+  boundaries["sim"] = {
+      QLineF(0, 0, width_in_meters_, 0),
+      QLineF(0, 0, 0, height_in_meters_),
+      QLineF(width_in_meters_, 0, width_in_meters_, height_in_meters_),
+      QLineF(0, height_in_meters_, width_in_meters_, height_in_meters_),
+  };
+  for (const auto& [name, turtle] : turtles_)
+  {
+    boundaries[name] = turtle->getBoundaries();
+  }
+
   bool modified = false;
   M_Turtle::iterator it = turtles_.begin();
   M_Turtle::iterator end = turtles_.end();
   for (; it != end; ++it) {
     modified |= it->second->update(
       0.001 * update_timer_->interval(), path_painter_, path_image_, width_in_meters_,
-      height_in_meters_);
+      height_in_meters_, boundaries);
   }
   if (modified) {
     update();

@@ -29,11 +29,13 @@
 #include "turtlesim/turtle.hpp"
 
 #include <QColor>
+#include <QLine>
 #include <QRgb>
 
 #include <cmath>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -197,7 +199,7 @@ void Turtle::rotateImage()
 
 bool Turtle::update(
   double dt, QPainter & path_painter, const QImage & path_image,
-  qreal canvas_width, qreal canvas_height)
+  qreal canvas_width, qreal canvas_height, const std::map<std::string, std::vector<QLineF>>& boundaries)
 {
   bool modified = false;
   qreal old_orient = orient_;
@@ -320,12 +322,6 @@ bool Turtle::update(
     color_pub_->publish(std::move(color));
   }
 
-  const std::vector<QLineF> boundaries({
-      QLineF(0, 0, canvas_width, 0),
-      QLineF(0, 0, 0, canvas_height),
-      QLineF(canvas_width, 0, canvas_width, canvas_height),
-      QLineF(0, canvas_height, canvas_width, canvas_height),
-  });
   laser_.measure(pos_, orient_, boundaries);
 
   RCLCPP_DEBUG(
@@ -353,6 +349,23 @@ void Turtle::paint(QPainter & painter)
   p.rx() -= 0.5 * turtle_rotated_image_.width();
   p.ry() -= 0.5 * turtle_rotated_image_.height();
   painter.drawImage(p, turtle_rotated_image_);
+}
+
+std::vector<QLineF> Turtle::getBoundaries() const
+{
+  std::vector<QLineF> boundaries({
+      QLineF(pos_.x() - 0.5, pos_.y() - 0.5, pos_.x() + 0.5, pos_.y() - 0.5),
+      QLineF(pos_.x() - 0.5, pos_.y() - 0.5, pos_.x() - 0.5, pos_.y() + 0.5),
+      QLineF(pos_.x() + 0.5, pos_.x() - 0.5, pos_.x() + 0.5, pos_.y() + 0.5),
+      QLineF(pos_.x() - 0.5, pos_.y() + 0.5, pos_.x() + 0.5, pos_.y() + 0.5),
+  });
+
+  for (auto& line : boundaries)
+  {
+    line.setAngle(line.angle() + orient_);
+  }
+
+  return boundaries;
 }
 
 }  // namespace turtlesim

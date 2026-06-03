@@ -14,7 +14,7 @@ Laser::Laser(rclcpp::Node::SharedPtr& nodeHandle, const std::string& frame_id)
     pub_ = nodeHandle_->create_publisher<MessageType>(frame_id_ + "/laser", rclcpp::QoS(1));
 }
 
-void Laser::measure(const QPointF& position, const float orientation, const std::vector<QLineF>& boundaries)
+void Laser::measure(const QPointF& position, const float orientation, const std::map<std::string, std::vector<QLineF>>& boundaries)
 {
     MessageType scan;
     scan.header.stamp             = rclcpp::Clock().now();
@@ -36,19 +36,25 @@ void Laser::measure(const QPointF& position, const float orientation, const std:
 
         // The range is the closest point that intersects with the boundary lines
         float range = std::numeric_limits<float>::infinity();
-        for (const auto& boundary : boundaries)
+        for (const auto& [name, boundary] : boundaries)
         {
-            QPointF intersection;
-            if (const auto intersectionType = ray.intersects(boundary, &intersection);
-                intersectionType != QLineF::IntersectionType::BoundedIntersection)
-            {
+            if (name == frame_id_)
                 continue;
-            }
 
-            if (const auto distance = QVector2D(position).distanceToPoint(QVector2D(intersection)) + noise_(randomGenerator_);
-                range > distance)
+            for (const auto& line : boundary)
             {
-                range = distance;
+                QPointF intersection;
+                if (const auto intersectionType = ray.intersects(line, &intersection);
+                    intersectionType != QLineF::IntersectionType::BoundedIntersection)
+                {
+                    continue;
+                }
+
+                if (const auto distance = QVector2D(position).distanceToPoint(QVector2D(intersection)) + noise_(randomGenerator_);
+                    range > distance)
+                {
+                    range = distance;
+                }
             }
         }
         scan.ranges.emplace_back(range);

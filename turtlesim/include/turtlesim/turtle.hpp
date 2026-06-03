@@ -46,6 +46,7 @@
 #endif
 
 #include <QImage>
+#include <QLine>
 #include <QPainter>
 #include <QPen>
 #include <QPointF>
@@ -71,8 +72,10 @@ public:
 
   bool update(
     double dt, QPainter & path_painter, const QImage & path_image, qreal canvas_width,
-    qreal canvas_height);
+    qreal canvas_height, const std::map<std::string, std::vector<QLineF>>& boundaries);
   void paint(QPainter & painter);
+
+  std::vector<QLineF> getBoundaries() const;
 
 private:
   void velocityCallback(const geometry_msgs::msg::Twist::ConstSharedPtr vel);
