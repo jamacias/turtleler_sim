@@ -84,7 +84,6 @@ Turtle::Turtle(
       std::placeholders::_1));
   pose_pub_ = nh_->create_publisher<turtlesim_msgs::msg::Pose>(real_name + "/pose", qos);
   color_pub_ = nh_->create_publisher<turtlesim_msgs::msg::Color>(real_name + "/color_sensor", qos);
-  boundary_pub_ = nh_->create_publisher<geometry_msgs::msg::PolygonStamped>(real_name + "/boundary", qos);
   set_pen_srv_ =
     nh_->create_service<turtlesim_msgs::srv::SetPen>(
     real_name + "/set_pen",
@@ -324,8 +323,7 @@ bool Turtle::update(
     color_pub_->publish(std::move(color));
   }
 
-  calculateBoundaries(QPointF(pos_.x(), canvas_height - pos_.y()), orient_);
-  // calculateBoundaries(pos_, orient_);
+  calculateBoundaries(pos_, orient_);
   laser_.measure(pos_, orient_, boundaries);
 
   RCLCPP_DEBUG(
@@ -357,7 +355,7 @@ void Turtle::paint(QPainter & painter)
 
 QPolygonF Turtle::getBoundaries() const
 {
-  return boundariesInWorld_;
+  return boundariesInQt_;
 }
 
 void Turtle::calculateBoundaries(const QPointF& position, float orientation)
@@ -365,22 +363,7 @@ void Turtle::calculateBoundaries(const QPointF& position, float orientation)
   QPolygonF boundaries(QRectF(QPointF(-0.5, 0.5), QPointF(0.5, -0.5)));
   QTransform tf;
   tf.translate(position.x(), position.y()).rotateRadians(orientation);
-  boundaries = tf.map(boundaries);
-
-  geometry_msgs::msg::PolygonStamped polygon;
-  polygon.header.frame_id = "world";
-  polygon.header.stamp = nh_->get_clock()->now();
-  for (const auto& qpoint : boundaries)
-  {
-    geometry_msgs::msg::Point32 point;
-    point.x = qpoint.x();
-    point.y = qpoint.y();
-    polygon.polygon.points.emplace_back(point);
-  }
-
-  boundary_pub_->publish(polygon);
-
-  boundariesInWorld_ = boundaries;
+  boundariesInQt_ = tf.map(boundaries);
 }
 
 }  // namespace turtlesim

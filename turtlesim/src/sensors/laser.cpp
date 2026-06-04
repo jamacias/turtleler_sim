@@ -1,6 +1,8 @@
 #include "turtlesim/sensors/laser.hpp"
 
-#include <qvector2d.h>
+#include <QVector2D>
+#include <QPoint>
+#include <qsize.h>
 #include <rclcpp/clock.hpp>
 #include <rclcpp/time.hpp>
 

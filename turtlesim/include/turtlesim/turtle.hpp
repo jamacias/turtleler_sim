@@ -110,13 +110,12 @@ private:
   bool pen_on_;
   QPen pen_;
 
-  QPolygonF boundariesInWorld_;
+  QPolygonF boundariesInQt_;
   Laser laser_;
 
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr velocity_sub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Pose>::SharedPtr pose_pub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Color>::SharedPtr color_pub_;
-  rclcpp::Publisher<geometry_msgs::msg::PolygonStamped>::SharedPtr boundary_pub_;
   rclcpp::Service<turtlesim_msgs::srv::SetPen>::SharedPtr set_pen_srv_;
   rclcpp::Service<turtlesim_msgs::srv::TeleportRelative>::SharedPtr teleport_relative_srv_;
   rclcpp::Service<turtlesim_msgs::srv::TeleportAbsolute>::SharedPtr teleport_absolute_srv_;
