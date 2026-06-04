@@ -36,6 +36,7 @@
 # include <rclcpp_action/rclcpp_action.hpp>
 
 # include <geometry_msgs/msg/twist.hpp>
+# include <geometry_msgs/msg/polygon_stamped.hpp>
 # include <turtlesim_msgs/action/rotate_absolute.hpp>
 # include <turtlesim_msgs/msg/color.hpp>
 # include <turtlesim_msgs/msg/pose.hpp>
@@ -50,6 +51,7 @@
 #include <QPainter>
 #include <QPen>
 #include <QPointF>
+#include <QPolygonF>
 
 #include <memory>
 #include <string>
@@ -72,10 +74,10 @@ public:
 
   bool update(
     double dt, QPainter & path_painter, const QImage & path_image, qreal canvas_width,
-    qreal canvas_height, const std::map<std::string, std::vector<QLineF>>& boundaries);
+    qreal canvas_height, const std::map<std::string, QPolygonF>& boundaries);
   void paint(QPainter & painter);
 
-  std::vector<QLineF> getBoundaries() const;
+  QPolygonF getBoundaries() const;
 
 private:
   void velocityCallback(const geometry_msgs::msg::Twist::ConstSharedPtr vel);
@@ -92,6 +94,8 @@ private:
 
   void rotateImage();
 
+  void calculateBoundaries(const QPointF& position, float orientation);
+
   rclcpp::Node::SharedPtr nh_;
 
   QImage turtle_image_;
@@ -106,11 +110,13 @@ private:
   bool pen_on_;
   QPen pen_;
 
+  QPolygonF boundariesInWorld_;
   Laser laser_;
 
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr velocity_sub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Pose>::SharedPtr pose_pub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Color>::SharedPtr color_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::PolygonStamped>::SharedPtr boundary_pub_;
   rclcpp::Service<turtlesim_msgs::srv::SetPen>::SharedPtr set_pen_srv_;
   rclcpp::Service<turtlesim_msgs::srv::TeleportRelative>::SharedPtr teleport_relative_srv_;
   rclcpp::Service<turtlesim_msgs::srv::TeleportAbsolute>::SharedPtr teleport_absolute_srv_;

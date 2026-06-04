@@ -29,6 +29,7 @@
 #include "turtlesim/turtle_frame.hpp"
 
 #include <QPointF>
+#include <QPolygonF>
 
 #include <cstdlib>
 #include <ctime>
@@ -303,13 +304,8 @@ void TurtleFrame::updateTurtles()
     return;
   }
 
-  std::map<std::string, std::vector<QLineF>> boundaries;
-  boundaries["sim"] = {
-      QLineF(0, 0, width_in_meters_, 0),
-      QLineF(0, 0, 0, height_in_meters_),
-      QLineF(width_in_meters_, 0, width_in_meters_, height_in_meters_),
-      QLineF(0, height_in_meters_, width_in_meters_, height_in_meters_),
-  };
+  std::map<std::string, QPolygonF> boundaries;
+  boundaries["sim"] = {QPolygonF(QRectF(QPointF(0, height_in_meters_), QPointF(width_in_meters_, 0)))};
   for (const auto& [name, turtle] : turtles_)
   {
     boundaries[name] = turtle->getBoundaries();

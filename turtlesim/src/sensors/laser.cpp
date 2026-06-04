@@ -14,7 +14,7 @@ Laser::Laser(rclcpp::Node::SharedPtr& nodeHandle, const std::string& frame_id)
     pub_ = nodeHandle_->create_publisher<MessageType>(frame_id_ + "/laser", rclcpp::QoS(1));
 }
 
-void Laser::measure(const QPointF& position, const float orientation, const std::map<std::string, std::vector<QLineF>>& boundaries)
+void Laser::measure(const QPointF& position, const float orientation, const std::map<std::string, QPolygonF>& boundaries)
 {
     MessageType scan;
     scan.header.stamp             = rclcpp::Clock().now();
@@ -41,8 +41,9 @@ void Laser::measure(const QPointF& position, const float orientation, const std:
             if (name == frame_id_)
                 continue;
 
-            for (const auto& line : boundary)
+            for (int i = 0; i < boundary.size() - 1; ++i)
             {
+                const QLineF line(boundary.at(i), boundary.at(i + 1));
                 QPointF intersection;
                 if (const auto intersectionType = ray.intersects(line, &intersection);
                     intersectionType != QLineF::IntersectionType::BoundedIntersection)
