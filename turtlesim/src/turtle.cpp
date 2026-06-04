@@ -29,11 +29,14 @@
 #include "turtlesim/turtle.hpp"
 
 #include <QColor>
+#include <QLine>
 #include <QRgb>
+#include <QTransform>
 
 #include <cmath>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -70,6 +73,7 @@ Turtle::Turtle(
   , ang_vel_(0.0)
   , pen_on_(true)
   , pen_(QColor(DEFAULT_PEN_R, DEFAULT_PEN_G, DEFAULT_PEN_B))
+  , laser_(nh, real_name)
 {
   pen_.setWidth(3);
 
@@ -196,7 +200,7 @@ void Turtle::rotateImage()
 
 bool Turtle::update(
   double dt, QPainter & path_painter, const QImage & path_image,
-  qreal canvas_width, qreal canvas_height)
+  qreal canvas_width, qreal canvas_height, const std::map<std::string, QPolygonF>& boundaries)
 {
   bool modified = false;
   qreal old_orient = orient_;
@@ -319,6 +323,9 @@ bool Turtle::update(
     color_pub_->publish(std::move(color));
   }
 
+  calculateBoundaries(pos_, orient_);
+  laser_.measure(pos_, orient_, boundaries);
+
   RCLCPP_DEBUG(
     nh_->get_logger(), "[%s]: pos_x: %f pos_y: %f theta: %f",
     nh_->get_namespace(), pos_.x(), pos_.y(), orient_);
@@ -344,6 +351,19 @@ void Turtle::paint(QPainter & painter)
   p.rx() -= 0.5 * turtle_rotated_image_.width();
   p.ry() -= 0.5 * turtle_rotated_image_.height();
   painter.drawImage(p, turtle_rotated_image_);
+}
+
+QPolygonF Turtle::getBoundaries() const
+{
+  return boundariesInQt_;
+}
+
+void Turtle::calculateBoundaries(const QPointF& position, float orientation)
+{
+  QPolygonF boundaries(QRectF(QPointF(-0.5, 0.5), QPointF(0.5, -0.5)));
+  QTransform tf;
+  tf.translate(position.x(), position.y()).rotateRadians(orientation);
+  boundariesInQt_ = tf.map(boundaries);
 }
 
 }  // namespace turtlesim

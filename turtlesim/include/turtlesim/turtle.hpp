@@ -30,23 +30,28 @@
 #define TURTLESIM__TURTLE_HPP_
 
 // This prevents a MOC error with versions of boost >= 1.48
+#include "turtlesim/sensors/laser.hpp"
 #ifndef Q_MOC_RUN  // See: https://bugreports.qt-project.org/browse/QTBUG-22829
 # include <rclcpp/rclcpp.hpp>
 # include <rclcpp_action/rclcpp_action.hpp>
 
 # include <geometry_msgs/msg/twist.hpp>
+# include <geometry_msgs/msg/polygon_stamped.hpp>
 # include <turtlesim_msgs/action/rotate_absolute.hpp>
 # include <turtlesim_msgs/msg/color.hpp>
 # include <turtlesim_msgs/msg/pose.hpp>
 # include <turtlesim_msgs/srv/set_pen.hpp>
 # include <turtlesim_msgs/srv/teleport_absolute.hpp>
 # include <turtlesim_msgs/srv/teleport_relative.hpp>
+# include <sensor_msgs/msg/laser_scan.hpp>
 #endif
 
 #include <QImage>
+#include <QLine>
 #include <QPainter>
 #include <QPen>
 #include <QPointF>
+#include <QPolygonF>
 
 #include <memory>
 #include <string>
@@ -69,8 +74,10 @@ public:
 
   bool update(
     double dt, QPainter & path_painter, const QImage & path_image, qreal canvas_width,
-    qreal canvas_height);
+    qreal canvas_height, const std::map<std::string, QPolygonF>& boundaries);
   void paint(QPainter & painter);
+
+  QPolygonF getBoundaries() const;
 
 private:
   void velocityCallback(const geometry_msgs::msg::Twist::ConstSharedPtr vel);
@@ -87,6 +94,8 @@ private:
 
   void rotateImage();
 
+  void calculateBoundaries(const QPointF& position, float orientation);
+
   rclcpp::Node::SharedPtr nh_;
 
   QImage turtle_image_;
@@ -100,6 +109,9 @@ private:
   qreal ang_vel_;
   bool pen_on_;
   QPen pen_;
+
+  QPolygonF boundariesInQt_;
+  Laser laser_;
 
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr velocity_sub_;
   rclcpp::Publisher<turtlesim_msgs::msg::Pose>::SharedPtr pose_pub_;
