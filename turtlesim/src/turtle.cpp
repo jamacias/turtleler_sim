@@ -362,18 +362,16 @@ QPolygonF Turtle::getBoundaries() const
 
 void Turtle::calculateBoundaries(const QPointF& position, float orientation)
 {
-  QPolygonF boundaries(QRectF(QPointF(-0.5, +0.5), QPointF(0.5, -0.5)));
+  QPolygonF boundaries(QRectF(QPointF(-0.5, 0.5), QPointF(0.5, -0.5)));
   QTransform tf;
-  tf.rotateRadians(orientation);
+  tf.translate(position.x(), position.y()).rotateRadians(orientation);
   boundaries = tf.map(boundaries);
 
   geometry_msgs::msg::PolygonStamped polygon;
   polygon.header.frame_id = "world";
   polygon.header.stamp = nh_->get_clock()->now();
-  for (auto& qpoint : boundaries)
+  for (const auto& qpoint : boundaries)
   {
-    qpoint += position;
-
     geometry_msgs::msg::Point32 point;
     point.x = qpoint.x();
     point.y = qpoint.y();
