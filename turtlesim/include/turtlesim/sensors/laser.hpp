@@ -7,7 +7,6 @@
 #include <sensor_msgs/msg/laser_scan.hpp>
 #endif
 
-#include <QLine>
 #include <QPoint>
 #include <QPolygon>
 #include <random>

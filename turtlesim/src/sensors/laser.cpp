@@ -1,7 +1,8 @@
 #include "turtlesim/sensors/laser.hpp"
 
-#include <QVector2D>
+#include <QLine>
 #include <QPoint>
+#include <QVector2D>
 #include <qsize.h>
 #include <rclcpp/clock.hpp>
 #include <rclcpp/time.hpp>
@@ -16,7 +17,8 @@ Laser::Laser(rclcpp::Node::SharedPtr& nodeHandle, const std::string& frame_id)
     pub_ = nodeHandle_->create_publisher<MessageType>(frame_id_ + "/laser", rclcpp::QoS(1));
 }
 
-void Laser::measure(const QPointF& position, const float orientation, const std::map<std::string, QPolygonF>& boundaries)
+void Laser::measure(const QPointF& position, const float orientation,
+                    const std::map<std::string, QPolygonF>& boundaries)
 {
     MessageType scan;
     scan.header.stamp             = rclcpp::Clock().now();
@@ -46,14 +48,15 @@ void Laser::measure(const QPointF& position, const float orientation, const std:
             for (int i = 0; i < boundary.size() - 1; ++i)
             {
                 const QLineF line(boundary.at(i), boundary.at(i + 1));
-                QPointF intersection;
+                QPointF      intersection;
                 if (const auto intersectionType = ray.intersects(line, &intersection);
                     intersectionType != QLineF::IntersectionType::BoundedIntersection)
                 {
                     continue;
                 }
 
-                if (const auto distance = QVector2D(position).distanceToPoint(QVector2D(intersection)) + noise_(randomGenerator_);
+                if (const auto distance =
+                        QVector2D(position).distanceToPoint(QVector2D(intersection)) + noise_(randomGenerator_);
                     range > distance)
                 {
                     range = distance;
