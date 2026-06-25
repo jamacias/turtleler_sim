@@ -43,6 +43,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
 
+#include "turtlesim/sensors/camera.hpp"
 #include "turtlesim_msgs/srv/kill.hpp"
 #include "turtlesim_msgs/srv/spawn.hpp"
 
@@ -57,6 +58,7 @@ TurtleFrame::TurtleFrame(rclcpp::Node::SharedPtr & node_handle, QWidget * parent
 : QFrame(parent, f)
   , path_image_(500, 500, QImage::Format_ARGB32)
   , path_painter_(&path_image_)
+  , bev_camera_(node_handle)
   , frame_count_(0)
   , id_counter_(0)
 {
@@ -322,6 +324,8 @@ void TurtleFrame::updateTurtles()
   if (modified) {
     update();
   }
+
+  bev_camera_.measure(path_image_);
 
   ++frame_count_;
 }

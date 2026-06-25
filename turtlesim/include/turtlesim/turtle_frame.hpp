@@ -51,6 +51,7 @@
 #include <std_srvs/srv/empty.hpp>
 #include <turtlesim_msgs/srv/spawn.hpp>
 #include <turtlesim_msgs/srv/kill.hpp>
+#include <turtlesim/sensors/camera.hpp>
 #endif
 
 namespace turtlesim
@@ -99,6 +100,7 @@ private:
   QTimer * update_timer_;
   QImage path_image_;
   QPainter path_painter_;
+  Camera bev_camera_;
 
   uint64_t frame_count_;
 
