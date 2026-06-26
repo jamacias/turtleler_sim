@@ -325,7 +325,7 @@ void TurtleFrame::updateTurtles()
     update();
   }
 
-  bev_camera_.measure(path_image_);
+  bev_camera_.measure(grab().toImage());
 
   ++frame_count_;
 }
